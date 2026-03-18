@@ -68,6 +68,8 @@ var (
 	ConvertResultStatus               = (*ClusterSummaryReconciler).convertResultStatus
 	RequeueClusterSummaryForReference = (*ClusterSummaryReconciler).requeueClusterSummaryForReference
 	RequeueClusterSummaryForCluster   = (*ClusterSummaryReconciler).requeueClusterSummaryForCluster
+
+	SetNextReconcileTime = (*ClusterSummaryReconciler).setNextReconcileTime
 )
 
 var (

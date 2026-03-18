@@ -1,0 +1,53 @@
+name: test-reconciliation-storm-fix-v1.1.1
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - 'fix/reconciliation-storm-v1.1.1'
+
+jobs:
+  build-and-lint:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-go@v5
+      with:
+        go-version: '1.25.0'
+    - name: Build
+      run: make build
+    - name: Vet
+      run: make vet
+
+  unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-go@v5
+      with:
+        go-version: '1.25.0'
+    - name: Unit tests
+      run: make test
+
+  publish-image:
+    needs: [build-and-lint, unit-tests]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+    - uses: actions/checkout@v4
+    - name: Log in to GitHub Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    - name: Build and push image
+      env:
+        IMAGE_TAG: ghcr.io/${{ github.repository }}:v1.1.1-reconcile-fix
+      run: |
+        docker build --build-arg BUILDOS=linux --build-arg TARGETARCH=amd64 \
+          -t "$IMAGE_TAG" .
+        docker push "$IMAGE_TAG"
+        echo "Image pushed to $IMAGE_TAG"
